@@ -62,7 +62,7 @@ trait SingleTableInheritanceTrait {
       // prevent infinite recursion if the singleTableSubclasses is inherited
       if (!in_array($calledClass, $subclasses)) {
         foreach ($subclasses as $subclass) {
-          $typeMap = array_merge($typeMap, $subclass::getSingleTableTypeMap());
+          $typeMap = $typeMap + $subclass::getSingleTableTypeMap();
         }
       }
     }
@@ -197,7 +197,8 @@ trait SingleTableInheritanceTrait {
    * @return string the qualified column name
    */
   public function getQualifiedSingleTableTypeColumn() {
-    return $this->getTable() . '.' . static::$singleTableTypeField;
+    // mongodb doesn't work with "table_name"."field" queries; just "field"
+    return $this->getConnection()->getDriverName() === "mongodb" ? static::$singleTableTypeField : $this->getTable() . '.' . static::$singleTableTypeField;
   }
 
   public function setFilteredAttributes(array $attributes) {
